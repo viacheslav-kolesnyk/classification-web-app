@@ -141,7 +141,7 @@ def request_entity_too_large(error):
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template("index.html"), 404
+    return index(), 404
 
 
 if __name__ == "__main__":
