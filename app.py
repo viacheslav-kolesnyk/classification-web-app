@@ -1,4 +1,5 @@
 import io
+import os
 import uuid
 import logging
 from flask import (
@@ -144,4 +145,4 @@ def not_found(error):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "1") == "1")

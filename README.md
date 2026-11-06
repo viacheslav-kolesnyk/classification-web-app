@@ -14,7 +14,9 @@ classification-web-app/
 ├── app.py                      # Flask web server and routing (Pages 1 & 2, REST API)
 ├── classifier.py               # Deep learning inference engine, transforms & metadata
 ├── config.py                   # Centralized configuration settings & paths
-├── requirements.txt            # Project dependencies
+├── requirements.txt            # Runtime dependencies (CPU-only PyTorch, gunicorn)
+├── requirements-dev.txt        # Runtime + dev dependencies (pytest, flake8)
+├── render.yaml                 # Render deployment blueprint
 ├── model/
 │   ├── build_model.py          # Script for building & initializing model weights
 │   └── waste_classifier.pth   # Exported PyTorch model checkpoint (~5.9 MB)
@@ -91,7 +93,11 @@ source venv/bin/activate
 
 #### 3. Install Dependencies
 ```bash
+# Runtime only
 pip install -r requirements.txt
+
+# Runtime + test/lint tools (needed for step 4)
+pip install -r requirements-dev.txt
 ```
 
 #### 4. Run Automated Test Suite & Code Linter
@@ -108,6 +114,40 @@ python -m flake8
 python app.py
 ```
 Open your browser and navigate to `http://127.0.0.1:5000` to use the application.
+
+---
+
+### Deploying on Render
+
+The app can be deployed as a Render **Web Service**. A `render.yaml` blueprint is included in the repository root.
+
+#### Option A: Blueprint (recommended)
+1. Push the repository to GitHub or GitLab. Make sure `model/waste_classifier.pth` and `static/samples/` are committed.
+2. In the Render dashboard choose **New → Blueprint** and select the repository.
+3. Render reads `render.yaml`, generates a random `SECRET_KEY` and deploys the service.
+
+#### Option B: Manual Web Service
+Create **New → Web Service**, connect the repository and use:
+
+| Setting | Value |
+| :--- | :--- |
+| Runtime | Python 3 |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `gunicorn app:app --workers 1 --timeout 120 --bind 0.0.0.0:$PORT` |
+
+Environment variables:
+- `SECRET_KEY` – a long random string.
+- `PYTHON_VERSION` – e.g. `3.11.9`.
+
+#### Notes
+- `requirements.txt` uses the CPU-only PyTorch wheel index to keep the build small.
+- Use a single gunicorn worker: each worker loads its own copy of the model. Add `--threads 2` for light concurrency.
+- Render's filesystem is ephemeral, so files in `static/uploads/` are lost on restart or redeploy. Attach a Render Disk at `static/uploads` for persistence.
+- The free tier spins down after about 15 minutes of inactivity, so the first request afterwards is slow while the model reloads.
+- Verify the deployment:
+```bash
+curl -X POST https://<your-service>.onrender.com/api/classify -F "file=@sample.jpg"
+```
 
 ---
 
