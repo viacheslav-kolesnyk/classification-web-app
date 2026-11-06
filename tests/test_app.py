@@ -2,7 +2,6 @@ import io
 import pytest
 from PIL import Image
 from app import app
-import config
 
 
 @pytest.fixture

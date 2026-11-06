@@ -1,11 +1,10 @@
-import os
 import io
+import os
 import uuid
 import logging
-from pathlib import Path
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, jsonify, send_from_directory
+    url_for, flash, jsonify
 )
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -49,7 +48,7 @@ def index():
 def predict():
     """Handles image upload or sample selection, runs inference, and displays results."""
     sample_name = request.form.get("sample_image")
-    
+
     # 1. Check if user selected one of the built-in sample images
     if sample_name:
         sample_path = app.config["SAMPLE_FOLDER"] / secure_filename(sample_name)
@@ -146,4 +145,4 @@ def not_found(error):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "1") == "1")

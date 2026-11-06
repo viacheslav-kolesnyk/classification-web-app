@@ -3,7 +3,7 @@ import pytest
 from PIL import Image
 import torch
 
-from classifier import WasteClassifier, CLASS_NAMES, CLASS_METADATA
+from classifier import WasteClassifier, CLASS_NAMES
 import config
 
 

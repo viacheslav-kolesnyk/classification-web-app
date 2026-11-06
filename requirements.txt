@@ -1,6 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 flask>=3.0.0
 werkzeug>=3.0.0
 torch>=2.0.0
 torchvision>=0.15.0
 pillow>=10.0.0
-pytest>=7.0.0
+gunicorn>=21.2.0

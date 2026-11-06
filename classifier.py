@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, Union
 import io
 
 import torch
@@ -20,8 +20,13 @@ CLASS_METADATA = {
         "bin_color": "#1e88e5",
         "icon": "📦",
         "description": "Corrugated boxes, cardboard packaging, shipping cartons, and paperboard cartons.",
-        "recycling_tip": "Flatten boxes completely to save bin volume. Remove any plastic tape or styrofoam inserts before disposal.",
-        "environmental_impact": "Recycling 1 ton of cardboard saves 9 cubic yards of landfill space and 46 gallons of oil."
+        "recycling_tip": (
+            "Flatten boxes completely to save bin volume. "
+            "Remove any plastic tape or styrofoam inserts before disposal."
+        ),
+        "environmental_impact": (
+            "Recycling 1 ton of cardboard saves 9 cubic yards of landfill space and 46 gallons of oil."
+        )
     },
     "glass": {
         "display_name": "Glass Containers",
@@ -29,8 +34,12 @@ CLASS_METADATA = {
         "bin_color": "#2e7d32",
         "icon": "🍾",
         "description": "Beverage bottles, condiment jars, and non-treated clear, green, or amber glass containers.",
-        "recycling_tip": "Rinse containers lightly to remove residue. Keep metal lids separate unless specified by local guidelines.",
-        "environmental_impact": "Glass is 100% recyclable and can be recycled endlessly without loss in quality or purity."
+        "recycling_tip": (
+            "Rinse containers lightly to remove residue. Keep metal lids separate unless specified by local guidelines."
+        ),
+        "environmental_impact": (
+            "Glass is 100% recyclable and can be recycled endlessly without loss in quality or purity."
+        )
     },
     "metal": {
         "display_name": "Metal & Aluminium Cans",
@@ -38,8 +47,12 @@ CLASS_METADATA = {
         "bin_color": "#fbc02d",
         "icon": "🥫",
         "description": "Aluminium beverage cans, tin food cans, clean aluminum foil, and metal lids.",
-        "recycling_tip": "Empty and lightly rinse cans. Crushing aluminium cans optimizes storage space in recycling bins.",
-        "environmental_impact": "Recycling aluminium saves 95% of the energy needed to produce new aluminium from raw bauxite ore."
+        "recycling_tip": (
+            "Empty and lightly rinse cans. Crushing aluminium cans optimizes storage space in recycling bins."
+        ),
+        "environmental_impact": (
+            "Recycling aluminium saves 95% of the energy needed to produce new aluminium from raw bauxite ore."
+        )
     },
     "paper": {
         "display_name": "Clean Paper & Documents",
@@ -47,8 +60,12 @@ CLASS_METADATA = {
         "bin_color": "#0288d1",
         "icon": "📄",
         "description": "Office paper, newspapers, magazines, envelopes, notebooks, and clean printed materials.",
-        "recycling_tip": "Ensure paper is dry and free of greasy food stains. Shredded paper should be bagged per local guidelines.",
-        "environmental_impact": "Recycling 1 ton of paper saves 17 trees, 7,000 gallons of water, and 4,000 kilowatt-hours of electricity."
+        "recycling_tip": (
+            "Ensure paper is dry and free of greasy food stains. Shredded paper should be bagged per local guidelines."
+        ),
+        "environmental_impact": (
+            "Recycling 1 ton of paper saves 17 trees, 7,000 gallons of water, and 4,000 kilowatt-hours of electricity."
+        )
     },
     "plastic": {
         "display_name": "Plastic Bottles & Containers",
@@ -57,16 +74,25 @@ CLASS_METADATA = {
         "icon": "🧴",
         "description": "PET beverage bottles, HDPE detergent bottles, food tubs, and rigid plastic containers.",
         "recycling_tip": "Empty all liquids, rinse food containers, and reattach caps to bottles before recycling.",
-        "environmental_impact": "Recycling plastics saves crude oil and significantly reduces ocean microplastic pollution."
+        "environmental_impact": (
+            "Recycling plastics saves crude oil and significantly reduces ocean microplastic pollution."
+        )
     },
     "trash": {
         "display_name": "General Residual Waste",
         "bin_category": "General Waste (Non-Recyclable / Landfill)",
         "bin_color": "#546e7a",
         "icon": "🗑️",
-        "description": "Non-recyclable composite items, contaminated packaging, food scraps, and residual domestic waste.",
-        "recycling_tip": "Dispose in general waste bin. Consider composting organic matter to minimize landfill contribution.",
-        "environmental_impact": "Proper segregation ensures non-recyclables do not contaminate and ruin entire batches of recyclable materials."
+        "description": (
+            "Non-recyclable composite items, contaminated packaging, food scraps, and residual domestic waste."
+        ),
+        "recycling_tip": (
+            "Dispose in general waste bin. Consider composting organic matter to minimize landfill contribution."
+        ),
+        "environmental_impact": (
+            "Proper segregation ensures non-recyclables do not contaminate and ruin entire batches of recyclable "
+            "materials."
+        )
     }
 }
 
@@ -88,7 +114,7 @@ class WasteClassifier:
     def __init__(self, model_path: Union[str, Path, None] = None, device: str = "cpu"):
         self.device = torch.device(device)
         self.model = build_architecture(num_classes=len(CLASS_NAMES))
-        
+
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -97,7 +123,7 @@ class WasteClassifier:
                 std=[0.229, 0.224, 0.225]
             )
         ])
-        
+
         if model_path and Path(model_path).exists():
             try:
                 state_dict = torch.load(model_path, map_location=self.device)
