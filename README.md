@@ -10,6 +10,7 @@ The project follows a clean modular architecture separating the user interface l
 
 ```
 classification-web-app/
+├── .flake8                     # Flake8 linting configuration
 ├── app.py                      # Flask web server and routing (Pages 1 & 2, REST API)
 ├── classifier.py               # Deep learning inference engine, transforms & metadata
 ├── config.py                   # Centralized configuration settings & paths
@@ -93,9 +94,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 4. Run Automated Test Suite
+#### 4. Run Automated Test Suite & Code Linter
 ```bash
+# Run unit & integration tests
 python -m pytest -v
+
+# Run Flake8 PEP 8 linter
+python -m flake8
 ```
 
 #### 5. Launch the Web Application
