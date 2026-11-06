@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Result - {{ result.display_name }} | EcoSort AI{% endblock %}
+
+{% block content %}
+<div class="result-header py-4 bg-gradient-header text-white text-center">
+    <div class="container">
+        <h2 class="fw-bold mb-1">Classification Results</h2>
+        <p class="lead opacity-90 mb-0">Analysis complete with deep learning probability distributions</p>
+    </div>
+</div>
+
+<div class="container mt-n3 mb-5">
+    <div class="row g-4 justify-content-center">
+        <!-- Left Column: Classified Image & Recycling Action Card -->
+        <div class="col-lg-5">
+            <div class="card shadow border-0 rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0 text-center">
+                    <span class="badge px-3 py-2 rounded-pill fw-bold" style="background-color: {{ result.bin_color }}; color: #ffffff;">
+                        <i class="fa-solid fa-tag me-1"></i> {{ result.bin_category }}
+                    </span>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <!-- Image Display -->
+                    <div class="result-image-wrapper mx-auto mb-4 rounded-4 shadow-sm overflow-hidden">
+                        <img src="{{ image_url }}" alt="Classified item" class="img-fluid result-img">
+                    </div>
+
+                    <!-- Primary Classification Result -->
+                    <div class="mb-3">
+                        <span class="fs-1">{{ result.icon }}</span>
+                        <h3 class="fw-extrabold text-dark mt-2 mb-1">{{ result.display_name }}</h3>
+                        <div class="d-inline-flex align-items-center gap-2 mt-1">
+                            <span class="badge bg-success-subtle text-success fs-6 fw-bold px-3 py-2 border border-success-subtle">
+                                <i class="fa-solid fa-circle-check me-1"></i> {{ result.confidence }}% Confidence
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small px-2">{{ result.description }}</p>
+
+                    <hr class="my-4">
+
+                    <!-- Disposal Instructions & Tip -->
+                    <div class="text-start bg-light p-3 rounded-3 mb-3 border-start border-4" style="border-color: {{ result.bin_color }} !important;">
+                        <h6 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-lightbulb text-warning me-2"></i>Recycling Guideline:
+                        </h6>
+                        <p class="small text-secondary mb-0">{{ result.recycling_tip }}</p>
+                    </div>
+
+                    <!-- Environmental Impact -->
+                    <div class="text-start bg-success-subtle p-3 rounded-3 border border-success-subtle">
+                        <h6 class="fw-bold text-success mb-1">
+                            <i class="fa-solid fa-earth-americas me-2"></i>Environmental Impact:
+                        </h6>
+                        <p class="small text-success-emphasis mb-0">{{ result.environmental_impact }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Confidence Breakdown & Model Details -->
+        <div class="col-lg-6">
+            <div class="card shadow border-0 rounded-4 p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-chart-simple text-primary me-2"></i>Class Probability Distribution
+                    </h5>
+                    <p class="text-muted small mb-4">
+                        Confidence scores generated across all supported recyclable and residual waste categories:
+                    </p>
+
+                    <!-- Probability Bars -->
+                    <div class="probability-list">
+                        {% for item in result.all_predictions %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold text-dark small">
+                                    <span class="me-1">{{ item.icon }}</span> {{ item.display_name }}
+                                    {% if loop.first %}
+                                    <span class="badge bg-primary-subtle text-primary ms-1">Top Match</span>
+                                    {% endif %}
+                                </span>
+                                <span class="fw-bold small {% if loop.first %}text-success{% else %}text-muted{% endif %}">
+                                    {{ item.probability }}%
+                                </span>
+                            </div>
+                            <div class="progress progress-modern" style="height: 10px;">
+                                <div class="progress-bar {% if loop.first %}bg-success{% else %}bg-secondary-subtle{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ item.probability }}%; {% if loop.first %}background-color: {{ item.bin_color }} !important;{% endif %}" 
+                                     aria-valuenow="{{ item.probability }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 small mt-4">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        <strong>Model Specs:</strong> MobileNetV3-Small deep convolutional neural network evaluated via Softmax normalized activation.
+                    </div>
+                </div>
+
+                <!-- Navigation Actions -->
+                <div class="mt-4 pt-3 border-top d-flex flex-column flex-sm-row gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg rounded-pill fw-bold flex-grow-1 shadow-sm py-2">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Classify Another Image
+                    </a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-secondary btn-lg rounded-pill fw-semibold py-2">
+                        <i class="fa-solid fa-circle-question me-1"></i>Model Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

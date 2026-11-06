@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section py-5 bg-gradient-header text-white text-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <span class="badge bg-light text-dark fw-semibold mb-3 px-3 py-2 rounded-pill shadow-sm">
+                    <i class="fa-solid fa-recycle text-success me-1"></i> Computer Vision for Sustainability
+                </span>
+                <h1 class="display-5 fw-extrabold mb-3">Intelligent Waste Classification</h1>
+                <p class="lead mb-4 opacity-90">
+                    Upload an image of a waste item or recyclable material. Our deep neural network instantly identifies the category, calculates prediction confidence, and provides recycling bin guidelines.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">📦 Cardboard</span>
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">🍾 Glass</span>
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">🥫 Metal</span>
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">📄 Paper</span>
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">🧴 Plastic</span>
+                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-2">🗑️ Trash</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-n4 mb-5">
+    <div class="row justify-content-center">
+        <!-- Main Upload Card -->
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden upload-card">
+                <div class="card-body p-4 p-md-5">
+                    <h4 class="card-title fw-bold text-center mb-1 text-dark">
+                        <i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Upload Item Image
+                    </h4>
+                    <p class="text-center text-muted small mb-4">Supported formats: JPG, PNG, WEBP, BMP (up to 16MB)</p>
+
+                    <form id="uploadForm" action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data">
+                        <!-- Dropzone Area -->
+                        <div id="dropZone" class="dropzone-area p-4 text-center rounded-4 border-2 border-dashed mb-4">
+                            <input type="file" id="fileInput" name="file" class="d-none" accept=".jpg,.jpeg,.png,.webp,.bmp">
+                            
+                            <div id="dropZonePrompt" class="py-4">
+                                <div class="upload-icon-circle mb-3 mx-auto">
+                                    <i class="fa-solid fa-image fa-2x text-primary"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Drag and drop your image here</h6>
+                                <p class="text-muted small mb-3">or browse from your device</p>
+                                <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fa-solid fa-folder-open me-2"></i>Choose File
+                                </button>
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div id="previewContainer" class="d-none py-2 text-center">
+                                <div class="position-relative d-inline-block">
+                                    <img id="imagePreview" src="#" alt="Upload preview" class="img-preview rounded-3 shadow mb-3">
+                                    <button type="button" id="removeImageBtn" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow" title="Remove image">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                <div id="fileDetails" class="small text-muted fw-semibold"></div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button with Loading Spinner -->
+                        <div class="d-grid">
+                            <button type="submit" id="submitBtn" class="btn btn-success btn-lg rounded-pill fw-bold py-3 shadow" disabled>
+                                <span id="btnText"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Classify Waste Item</span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Sample Selection Section -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="text-center mb-4">
+                <h5 class="fw-bold text-dark">
+                    <i class="fa-solid fa-flask text-success me-2"></i>Try with Sample Test Images
+                </h5>
+                <p class="text-muted small">Don't have an image on hand? Click any sample below to evaluate the classifier instantly:</p>
+            </div>
+
+            <div class="row g-3">
+                {% for sample in samples %}
+                <div class="col-6 col-md-4 col-lg-2">
+                    <form action="{{ url_for('predict') }}" method="POST" class="h-100">
+                        <input type="hidden" name="sample_image" value="{{ sample.name }}">
+                        <button type="submit" class="card sample-card h-100 border-0 shadow-sm rounded-3 text-center text-decoration-none w-100 p-2">
+                            <img src="{{ url_for('static', filename='samples/' + sample.name) }}" alt="{{ sample.label }}" class="card-img-top rounded-2 mb-2 sample-img">
+                            <div class="card-body p-1">
+                                <span class="badge bg-light text-dark border small fw-semibold mb-1">{{ metadata[sample.category].icon }} {{ sample.category|capitalize }}</span>
+                                <div class="small fw-bold text-dark text-truncate">{{ sample.label }}</div>
+                            </div>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="row justify-content-center mt-5 pt-3">
+        <div class="col-lg-10">
+            <div class="card border-0 bg-light rounded-4 p-4 shadow-sm">
+                <h5 class="fw-bold mb-4 text-center text-dark">
+                    <i class="fa-solid fa-gear text-primary me-2"></i>How the Classifier Works
+                </h5>
+                <div class="row g-4 text-center">
+                    <div class="col-md-4">
+                        <div class="step-icon mb-3 text-primary">
+                            <i class="fa-solid fa-camera fa-2x"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">1. Image Ingestion</h6>
+                        <p class="text-muted small mb-0">Input image is validated, resized to 224x224 pixels, and normalized according to standard ImageNet statistics.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="step-icon mb-3 text-success">
+                            <i class="fa-solid fa-brain fa-2x"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">2. Neural Inference</h6>
+                        <p class="text-muted small mb-0">The MobileNetV3 deep learning backbone extracts visual feature representations and generates class probability distributions.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="step-icon mb-3 text-warning">
+                            <i class="fa-solid fa-arrows-split-up-and-left fa-2x"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">3. Actionable Sorting</h6>
+                        <p class="text-muted small mb-0">The web application displays the predicted class, top-k confidence metrics, and targeted recycling bin disposal tips.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}
