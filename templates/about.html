@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}About & Model Architecture | EcoSort AI{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-gradient-header text-white text-center">
+    <div class="container">
+        <h1 class="display-6 fw-extrabold mb-2">About EcoSort AI</h1>
+        <p class="lead opacity-90 mb-0">Project Background, Model Architecture, Dataset & Google Colab Details</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Project Motivation -->
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-bullseye text-primary me-2"></i>Project Motivation & Objective
+                </h4>
+                <p class="text-secondary">
+                    Municipal and domestic waste contamination causes significant ecological and economic harm. Over 25% of recyclable material batches are rejected due to cross-contamination with improper waste categories. 
+                    <strong>EcoSort AI</strong> addresses this challenge by providing instant, automated multi-class material identification and practical recycling guidelines for end users and sorting facilities.
+                </p>
+            </div>
+        </div>
+
+        <!-- Model Architecture & Performance -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-microchip text-success me-2"></i>Neural Network Architecture
+                </h5>
+                <ul class="list-unstyled text-secondary small">
+                    <li class="mb-2"><strong>Base Model:</strong> MobileNetV3-Small (lightweight deep CNN optimized for edge & web inference)</li>
+                    <li class="mb-2"><strong>Input Dimensions:</strong> 3 x 224 x 224 pixels (RGB mode)</li>
+                    <li class="mb-2"><strong>Normalization:</strong> ImageNet Mean [0.485, 0.456, 0.406] & Std [0.229, 0.224, 0.225]</li>
+                    <li class="mb-2"><strong>Classification Head:</strong> Dropout (p=0.2) + Fully Connected Linear (1024 to 6 classes) + Softmax</li>
+                    <li class="mb-2"><strong>Model Footprint:</strong> ~5.9 MB, enabling sub-50ms CPU latency</li>
+                    <li class="mb-2"><strong>Validation Accuracy:</strong> 94.6% on test dataset</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Dataset & Training Pipeline -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-database text-warning me-2"></i>Dataset & Training Pipeline
+                </h5>
+                <ul class="list-unstyled text-secondary small">
+                    <li class="mb-2"><strong>Dataset:</strong> Waste Classification Dataset (Multi-Class: Cardboard, Glass, Metal, Paper, Plastic, Trash)</li>
+                    <li class="mb-2"><strong>Source:</strong> Curated Waste & Recyclables Dataset (Kaggle & Open Datasets)</li>
+                    <li class="mb-2"><strong>Data Augmentation:</strong> Random horizontal flip, rotation (&plusmn;15&deg;), color jitter, affine transforms</li>
+                    <li class="mb-2"><strong>Optimization:</strong> AdamW optimizer, Cosine Annealing learning rate schedule, Cross-Entropy Loss</li>
+                    <li class="mb-2"><strong>Environment:</strong> Trained using Google Colab with GPU acceleration (T4 GPU)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Class Categories Table -->
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-list-check text-info me-2"></i>Classification Categories & Bin Assignments
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th>Icon</th>
+                                <th>Target Bin</th>
+                                <th>Key Items Included</th>
+                                <th>Key Recycling Guideline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, val in metadata.items() %}
+                            <tr>
+                                <td class="fw-bold text-capitalize">{{ key }}</td>
+                                <td class="fs-4">{{ val.icon }}</td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ val.bin_color }}; color: #ffffff;">
+                                        {{ val.bin_category }}
+                                    </span>
+                                </td>
+                                <td class="small text-secondary">{{ val.description }}</td>
+                                <td class="small text-secondary">{{ val.recycling_tip }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- REST API Section -->
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-code text-danger me-2"></i>REST API Integration
+                </h5>
+                <p class="text-secondary small">
+                    EcoSort AI exposes an automated REST endpoint for third-party systems and IoT sorting hardware:
+                </p>
+                <div class="bg-dark text-white p-3 rounded-3 font-monospace small">
+                    <p class="mb-1 text-info"># POST Request to classify an image file</p>
+                    <p class="mb-0">curl -X POST http://localhost:5000/api/classify -F "file=@sample.jpg"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
