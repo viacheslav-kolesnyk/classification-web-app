@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code }} - {{ error_title }} | EcoSort AI{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-gradient-header text-white text-center">
+    <div class="container">
+        <h1 class="display-6 fw-extrabold mb-2">{{ error_title }}</h1>
+        <p class="lead opacity-90 mb-0">HTTP Status {{ error_code }}</p>
+    </div>
+</div>
+
+<div class="container py-5 my-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 text-center">
+            <div class="card border-0 shadow-lg rounded-4 p-5">
+                <div class="mb-4">
+                    <span class="display-1 fw-bold text-success opacity-75">{{ error_code }}</span>
+                </div>
+                <h4 class="fw-bold text-dark mb-3">{{ error_title }}</h4>
+                <p class="text-secondary mb-4">
+                    {{ error_message }}
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-success rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <i class="fa-solid fa-house me-2"></i>Return to Classifier
+                    </a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="fa-solid fa-circle-info me-2"></i>About EcoSort AI
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
