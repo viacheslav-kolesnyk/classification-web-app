@@ -114,6 +114,77 @@ def test_api_classify_endpoint(client):
     assert "confidence" in json_data["prediction"]
 
 
+def test_api_classify_mocked_prediction(client, monkeypatch):
+    import app as main_app
+
+    mock_result = {
+        "predicted_class": "plastic",
+        "confidence": 0.985,
+        "probabilities": {
+            "plastic": 0.985,
+            "glass": 0.010,
+            "metal": 0.005,
+            "paper": 0.0,
+            "cardboard": 0.0,
+            "trash": 0.0,
+        },
+        "description": "Plastic bottles, containers, bags",
+        "bin": "Yellow / Recycling Bin",
+        "icon": "bi-recycle",
+    }
+
+    monkeypatch.setattr(main_app.classifier, "predict", lambda img: mock_result)
+
+    img = Image.new("RGB", (100, 100), color=(50, 100, 200))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    buf.seek(0)
+
+    data = {"file": (buf, "test_plastic.jpg")}
+    response = client.post("/api/classify", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data["status"] == "success"
+    assert json_data["prediction"]["predicted_class"] == "plastic"
+    assert json_data["prediction"]["confidence"] == 0.985
+    assert json_data["prediction"]["bin"] == "Yellow / Recycling Bin"
+    assert json_data["prediction"]["probabilities"]["plastic"] == 0.985
+
+
+def test_api_classify_rejects_corrupt_image(client):
+    response = client.post(
+        "/api/classify",
+        data={
+            "file": (
+                io.BytesIO(b"this is not a real image"),
+                "broken.jpg",
+            )
+        },
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["status"] == "error"
+    assert "valid image" in body["error"].lower()
+
+
+def test_api_classify_rejects_unsupported_file_type(client):
+    response = client.post(
+        "/api/classify",
+        data={
+            "file": (
+                io.BytesIO(b"some text content"),
+                "payload.txt",
+            )
+        },
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["status"] == "error"
+    assert "invalid file format" in body["error"].lower()
+
+
 def test_api_classify_corrupted_image(client):
     buf = io.BytesIO(b"corrupted image binary content")
     data = {
