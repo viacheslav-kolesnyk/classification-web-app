@@ -28,7 +28,8 @@ classifier = WasteClassifier(model_path=config.MODEL_PATH, device=config.DEVICE)
 
 def allowed_file(filename: str) -> bool:
     """Checks whether the file has an allowed image extension."""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in config.ALLOWED_EXTENSIONS
+    ext = Path(filename or "").suffix.lower().lstrip(".")
+    return ext in config.ALLOWED_EXTENSIONS
 
 
 def validate_image(file_bytes: bytes):
@@ -71,23 +72,22 @@ def predict():
                 results = classifier.predict(sample_path)
                 image_url = url_for("static", filename=f"samples/{safe_sample_name}")
                 return render_template("result.html", result=results, image_url=image_url, is_sample=True)
-            except Exception as e:
-                logger.error(f"Error predicting sample image: {e}")
-                flash(f"Error processing sample image: {str(e)}", "danger")
+            except Exception:
+                logger.exception("Error predicting sample image")
+                flash("Unable to process the sample image.", "danger")
                 return redirect(url_for("index"))
 
     # 2. Check if user uploaded a file
-    if "file" not in request.files:
-        flash("No file part in the request.", "warning")
-        return redirect(url_for("index"))
-
-    file = request.files["file"]
-    if file.filename == "":
+    file = request.files.get("file")
+    if file is None or not file.filename:
         flash("No file selected for upload. Please choose an image.", "warning")
         return redirect(url_for("index"))
 
     if not allowed_file(file.filename):
-        flash("Invalid file format. Please upload a JPG, PNG, WEBP, or BMP image.", "danger")
+        flash(
+            "Invalid file format. Please upload a JPG, PNG, WEBP, or BMP image.",
+            "danger",
+        )
         return redirect(url_for("index"))
 
     file_bytes = file.read()
@@ -100,19 +100,32 @@ def predict():
             error_message="The uploaded file is not a valid image."
         ), 400
 
-    # Save to uploads folder with unique UUID name to avoid collisions
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    unique_filename = f"{uuid.uuid4().hex}.{ext}"
-    save_path = app.config["UPLOAD_FOLDER"] / unique_filename
+    save_path = None
+    try:
+        ext = Path(file.filename).suffix.lower().lstrip(".")
+        # Save to uploads folder with unique UUID name to avoid collisions
+        upload_folder = Path(app.config["UPLOAD_FOLDER"])
+        upload_folder.mkdir(parents=True, exist_ok=True)
+        unique_filename = f"{uuid.uuid4().hex}.{ext}"
+        save_path = upload_folder / unique_filename
 
-    with open(save_path, "wb") as f:
-        f.write(file_bytes)
+        with open(save_path, "wb") as output_file:
+            output_file.write(file_bytes)
 
-    # Run inference
-    results = classifier.predict(image)
-    image_url = url_for("static", filename=f"uploads/{unique_filename}")
+        # Run inference
+        results = classifier.predict(image)
+        image_url = url_for("static", filename=f"uploads/{unique_filename}")
 
-    return render_template("result.html", result=results, image_url=image_url, is_sample=False)
+        return render_template("result.html", result=results, image_url=image_url, is_sample=False)
+    except Exception:
+        if save_path is not None and save_path.exists():
+            try:
+                save_path.unlink()
+            except OSError:
+                logger.exception("Unable to remove failed upload")
+        logger.exception("Error processing uploaded image")
+        flash("Unable to process the uploaded image.", "danger")
+        return redirect(url_for("index"))
 
 
 @app.route("/api/classify", methods=["POST"])
@@ -145,11 +158,11 @@ def api_classify():
             "status": "success",
             "prediction": results
         }), 200
-    except Exception as e:
-        logger.error(f"API classification error: {e}", exc_info=True)
+    except Exception:
+        logger.exception("API classification error")
         return jsonify({
             "status": "error",
-            "error": str(e)
+            "error": "An error occurred during classification."
         }), 500
 
 
