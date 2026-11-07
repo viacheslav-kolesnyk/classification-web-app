@@ -33,6 +33,13 @@ def test_predict_with_sample_image(client):
     assert b"Class Probability Distribution" in response.data
 
 
+def test_predict_with_invalid_or_malicious_sample_image(client):
+    # Malicious or non-existent sample names should not match and should fall through to file upload check
+    response = client.post("/predict", data={"sample_image": "../../../etc/passwd"}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"No file part in the request" in response.data
+
+
 def test_predict_with_uploaded_file(client):
     # Create a small valid test JPEG in memory
     img = Image.new("RGB", (100, 100), color=(120, 200, 80))

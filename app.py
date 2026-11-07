@@ -64,12 +64,12 @@ def predict():
 
     # 1. Check if user selected one of the built-in sample images
     if sample_name:
-        safe_name = secure_filename(sample_name)
-        sample_path = Path(app.config["SAMPLE_FOLDER"]) / safe_name
-        if sample_path.is_file():
+        safe_sample_name = secure_filename(sample_name)
+        sample_path = Path(app.config["SAMPLE_FOLDER"]) / safe_sample_name
+        if safe_sample_name and sample_path.is_file():
             try:
                 results = classifier.predict(sample_path)
-                image_url = url_for("static", filename=f"samples/{safe_name}")
+                image_url = url_for("static", filename=f"samples/{safe_sample_name}")
                 return render_template("result.html", result=results, image_url=image_url, is_sample=True)
             except Exception as e:
                 logger.error(f"Error predicting sample image: {e}")
