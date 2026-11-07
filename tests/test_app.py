@@ -83,3 +83,51 @@ def test_api_classify_endpoint(client):
     assert "prediction" in json_data
     assert "predicted_class" in json_data["prediction"]
     assert "confidence" in json_data["prediction"]
+
+
+def test_404_error_html(client):
+    response = client.get("/nonexistent-page-url")
+    assert response.status_code == 404
+    assert b"Page Not Found" in response.data
+    assert b"404" in response.data
+    assert b"Return to Classifier" in response.data
+
+
+def test_404_error_api(client):
+    response = client.get("/api/nonexistent-endpoint")
+    assert response.status_code == 404
+    json_data = response.get_json()
+    assert json_data["status"] == "error"
+    assert "not found" in json_data["error"].lower()
+
+
+def test_413_error_html(client):
+    # Temporarily set MAX_CONTENT_LENGTH low to trigger 413 easily
+    original_max = app.config.get("MAX_CONTENT_LENGTH")
+    app.config["MAX_CONTENT_LENGTH"] = 100
+    try:
+        data = {
+            "file": (io.BytesIO(b"A" * 500), "oversized.jpg")
+        }
+        response = client.post("/predict", data=data, content_type="multipart/form-data")
+        assert response.status_code == 413
+        assert b"File Size Limit Exceeded" in response.data
+        assert b"413" in response.data
+    finally:
+        app.config["MAX_CONTENT_LENGTH"] = original_max
+
+
+def test_413_error_api(client):
+    original_max = app.config.get("MAX_CONTENT_LENGTH")
+    app.config["MAX_CONTENT_LENGTH"] = 100
+    try:
+        data = {
+            "file": (io.BytesIO(b"A" * 500), "oversized.jpg")
+        }
+        response = client.post("/api/classify", data=data, content_type="multipart/form-data")
+        assert response.status_code == 413
+        json_data = response.get_json()
+        assert json_data["status"] == "error"
+        assert "exceeds" in json_data["error"].lower()
+    finally:
+        app.config["MAX_CONTENT_LENGTH"] = original_max

@@ -92,6 +92,7 @@ def predict():
         save_path = app.config["UPLOAD_FOLDER"] / unique_filename
 
         with open(save_path, "wb") as f:
+            f.write(file_bytes)
 
         # Run inference
         results = classifier.predict(save_path)
@@ -112,7 +113,6 @@ def api_classify():
         return jsonify({"error": "No file uploaded in form-data field 'file'"}), 400
 
     file = request.files["file"]
-            f.write(file_bytes)
     if file.filename == "" or not allowed_file(file.filename):
         return jsonify({"error": "Invalid file format or empty filename"}), 400
 
@@ -135,13 +135,50 @@ def about():
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    flash("File size exceeds the 16MB limit. Please upload a smaller image.", "danger")
-    return redirect(url_for("index")), 413
+    if request.path.startswith("/api/"):
+        return jsonify({
+            "status": "error",
+            "error": "File size exceeds the 16MB limit. Please upload a smaller image."
+        }), 413
+    return render_template(
+        "error.html",
+        error_code=413,
+        error_title="File Size Limit Exceeded",
+        error_message=(
+            "The uploaded file exceeds the 16MB limit. "
+            "Please upload a smaller image."
+        ),
+    ), 413
 
 
 @app.errorhandler(404)
 def not_found(error):
-    return index(), 404
+    if request.path.startswith("/api/"):
+        return jsonify({
+            "status": "error",
+            "error": "The requested resource was not found on this server."
+        }), 404
+    return render_template(
+        "error.html",
+        error_code=404,
+        error_title="Page Not Found",
+        error_message="The page you are looking for does not exist or has been moved."
+    ), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    if request.path.startswith("/api/"):
+        return jsonify({
+            "status": "error",
+            "error": "An internal server error occurred."
+        }), 500
+    return render_template(
+        "error.html",
+        error_code=500,
+        error_title="Internal Server Error",
+        error_message="An unexpected server error occurred. Please try again later."
+    ), 500
 
 
 if __name__ == "__main__":

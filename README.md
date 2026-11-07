@@ -35,7 +35,8 @@ classification-web-app/
 │   ├── base.html               # Base layout with navigation and footer
 │   ├── index.html              # Page 1: Image upload and sample selector
 │   ├── result.html             # Page 2: Classification results & probability distribution
-│   └── about.html              # Model architecture & dataset details
+│   ├── about.html              # Model architecture & dataset details
+│   └── error.html              # Dedicated error page for HTTP 404, 413 & 500
 └── tests/
     ├── test_classifier.py      # Unit tests for preprocessing & inference
     └── test_app.py             # Integration tests for Flask endpoints
