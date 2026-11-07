@@ -66,6 +66,18 @@ def test_predict_invalid_extension(client):
     assert b"Invalid file format" in response.data
 
 
+def test_predict_corrupted_image(client):
+    # Pass arbitrary corrupted bytes with an allowed extension
+    buf = io.BytesIO(b"corrupted image binary content")
+    data = {
+        "file": (buf, "corrupt.jpg")
+    }
+    response = client.post("/predict", data=data, content_type="multipart/form-data")
+    assert response.status_code == 400
+    assert b"The uploaded file is not a valid image." in response.data
+    assert b"400" in response.data
+
+
 def test_api_classify_endpoint(client):
     img = Image.new("RGB", (100, 100), color=(200, 50, 50))
     buf = io.BytesIO()
@@ -83,6 +95,38 @@ def test_api_classify_endpoint(client):
     assert "prediction" in json_data
     assert "predicted_class" in json_data["prediction"]
     assert "confidence" in json_data["prediction"]
+
+
+def test_api_classify_corrupted_image(client):
+    buf = io.BytesIO(b"corrupted image binary content")
+    data = {
+        "file": (buf, "corrupt.jpg")
+    }
+    response = client.post("/api/classify", data=data, content_type="multipart/form-data")
+    assert response.status_code == 400
+    json_data = response.get_json()
+    assert json_data["status"] == "error"
+    assert json_data["error"] == "The uploaded file is not a valid image."
+
+
+def test_api_classify_no_file(client):
+    response = client.post("/api/classify", data={}, content_type="multipart/form-data")
+    assert response.status_code == 400
+    json_data = response.get_json()
+    assert json_data["status"] == "error"
+    assert "No file uploaded" in json_data["error"]
+
+
+def test_api_classify_invalid_extension(client):
+    buf = io.BytesIO(b"some pdf content")
+    data = {
+        "file": (buf, "document.pdf")
+    }
+    response = client.post("/api/classify", data=data, content_type="multipart/form-data")
+    assert response.status_code == 400
+    json_data = response.get_json()
+    assert json_data["status"] == "error"
+    assert "Invalid file format" in json_data["error"]
 
 
 def test_404_error_html(client):
