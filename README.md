@@ -4,6 +4,10 @@ EcoSort AI is an end-to-end Machine Learning web application designed to automat
 
 ---
 
+**GitHub:** [viacheslav-kolesnyk/classification-web-app](https://github.com/viacheslav-kolesnyk/classification-web-app) · **Live demo:** [ecosort-ai-mkhw.onrender.com](https://ecosort-ai-mkhw.onrender.com)
+
+---
+
 ### Project Architecture & Separation of Concerns
 
 The project follows a clean modular architecture separating the user interface layer from the core machine learning inference engine:
@@ -78,7 +82,7 @@ curl -X POST http://localhost:5000/api/classify -F "file=@sample.jpg"
 
 #### 1. Clone the Repository & Navigate to Directory
 ```bash
-git clone https://github.com/example/classification-web-app.git
+git clone https://github.com/viacheslav-kolesnyk/classification-web-app.git
 cd classification-web-app
 ```
 
