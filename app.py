@@ -80,7 +80,7 @@ def predict():
         # Validate that the file is indeed a readable image
         file_bytes = file.read()
         try:
-            image = Image.open(io.BytesIO(file_bytes) if 'io' in globals() else __import__('io').BytesIO(file_bytes))
+            image = Image.open(io.BytesIO(file_bytes))
             image.verify()
         except Exception:
             flash("The uploaded file is corrupted or not a valid image.", "danger")
@@ -92,7 +92,6 @@ def predict():
         save_path = app.config["UPLOAD_FOLDER"] / unique_filename
 
         with open(save_path, "wb") as f:
-            f.write(file_bytes)
 
         # Run inference
         results = classifier.predict(save_path)
@@ -113,6 +112,7 @@ def api_classify():
         return jsonify({"error": "No file uploaded in form-data field 'file'"}), 400
 
     file = request.files["file"]
+            f.write(file_bytes)
     if file.filename == "" or not allowed_file(file.filename):
         return jsonify({"error": "Invalid file format or empty filename"}), 400
 
