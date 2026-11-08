@@ -11,10 +11,8 @@ from PIL import Image
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Keep CPU/memory usage low on small servers (e.g. Render free tier, 512 MB RAM)
 torch.set_num_threads(1)
 
-# Large photos are downscaled before inference to avoid huge in-memory bitmaps
 MAX_INPUT_SIDE = 1024
 
 CLASS_NAMES = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
@@ -156,17 +154,15 @@ class WasteClassifier:
         else:
             raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
-        # Decode large JPEGs at reduced size and downscale oversized images to save memory
         if image.format == "JPEG":
             image.draft("RGB", (MAX_INPUT_SIDE, MAX_INPUT_SIDE))
         if max(image.size) > MAX_INPUT_SIDE:
             image.thumbnail((MAX_INPUT_SIDE, MAX_INPUT_SIDE))
 
-        # Convert to RGB mode (handles PNG alpha channel or grayscale)
         if image.mode != "RGB":
             image = image.convert("RGB")
 
-        tensor = self.transform(image).unsqueeze(0)  # Shape: (1, 3, 224, 224)
+        tensor = self.transform(image).unsqueeze(0)
         return tensor.to(self.device)
 
     def predict(self, image_input: Union[str, Path, bytes, io.BytesIO, Image.Image]) -> Dict[str, Any]:
@@ -182,7 +178,6 @@ class WasteClassifier:
         predicted_class = CLASS_NAMES[predicted_idx]
         confidence = float(probs_list[predicted_idx]) * 100.0
 
-        # Build sorted list of all class predictions
         all_predictions = []
         for idx, (c_name, prob) in enumerate(zip(CLASS_NAMES, probs_list)):
             meta = CLASS_METADATA[c_name]
@@ -195,7 +190,6 @@ class WasteClassifier:
                 "bin_color": meta["bin_color"]
             })
 
-        # Sort descending by probability
         all_predictions.sort(key=lambda x: x["probability"], reverse=True)
 
         meta = CLASS_METADATA[predicted_class]
