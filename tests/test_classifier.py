@@ -50,7 +50,6 @@ def test_prediction_output_structure(classifier_instance):
     assert "all_predictions" in result
     assert len(result["all_predictions"]) == 6
 
-    # Verify probability distribution sum is approximately 100%
     prob_sum = sum(p["probability"] for p in result["all_predictions"])
     assert 99.0 <= prob_sum <= 101.0
 

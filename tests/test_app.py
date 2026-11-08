@@ -41,7 +41,6 @@ def test_predict_with_invalid_or_malicious_sample_image(client):
 
 
 def test_predict_with_uploaded_file(client):
-    # Create a small valid test JPEG in memory
     img = Image.new("RGB", (100, 100), color=(120, 200, 80))
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -246,7 +245,7 @@ def test_404_error_api(client):
 
 
 def test_413_error_html(client):
-    # Temporarily set MAX_CONTENT_LENGTH low to trigger 413 easily
+
     original_max = app.config.get("MAX_CONTENT_LENGTH")
     app.config["MAX_CONTENT_LENGTH"] = 100
     try:

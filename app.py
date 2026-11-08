@@ -22,7 +22,6 @@ app.config["UPLOAD_FOLDER"] = config.UPLOAD_FOLDER
 app.config["SAMPLE_FOLDER"] = config.SAMPLE_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = config.MAX_CONTENT_LENGTH
 
-# Initialize the classifier instance (singleton for performance)
 classifier = WasteClassifier(model_path=config.MODEL_PATH, device=config.DEVICE)
 
 
@@ -38,7 +37,7 @@ def validate_image(file_bytes: bytes):
         with Image.open(io.BytesIO(file_bytes)) as image:
             image.verify()
         img = Image.open(io.BytesIO(file_bytes))
-        img.load()  # Примусове завантаження даних у пам'ять
+        img.load()
         return img
     except (UnidentifiedImageError, OSError):
         return None
@@ -63,7 +62,6 @@ def predict():
     """Handles image upload or sample selection, runs inference, and displays results."""
     sample_name = request.form.get("sample_image")
 
-    # 1. Check if user selected one of the built-in sample images
     if sample_name:
         safe_sample_name = secure_filename(sample_name)
         sample_path = Path(app.config["SAMPLE_FOLDER"]) / safe_sample_name
@@ -77,7 +75,6 @@ def predict():
                 flash("Unable to process the sample image.", "danger")
                 return redirect(url_for("index"))
 
-    # 2. Check if user uploaded a file
     file = request.files.get("file")
     if file is None or not file.filename:
         flash("No file selected for upload. Please choose an image.", "warning")
@@ -103,7 +100,7 @@ def predict():
     save_path = None
     try:
         ext = Path(file.filename).suffix.lower().lstrip(".")
-        # Save to uploads folder with unique UUID name to avoid collisions
+
         upload_folder = Path(app.config["UPLOAD_FOLDER"])
         upload_folder.mkdir(parents=True, exist_ok=True)
         unique_filename = f"{uuid.uuid4().hex}.{ext}"

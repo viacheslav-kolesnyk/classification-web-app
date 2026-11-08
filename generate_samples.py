@@ -21,14 +21,11 @@ def generate_sample_images(samples_dir: Path):
         img = Image.new("RGB", (400, 400), color=bg_color)
         draw = ImageDraw.Draw(img)
 
-        # Draw decorative border & shapes
         draw.rectangle([(20, 20), (380, 380)], outline=text_color, width=4)
         draw.rectangle([(40, 40), (360, 360)], fill=(255, 255, 255, 128), outline=text_color, width=2)
 
-        # Draw central circle
         draw.ellipse([(140, 110), (260, 230)], fill=bg_color, outline=text_color, width=3)
 
-        # Draw text labels
         draw.text((200, 260), title, fill=text_color, anchor="mm")
         draw.text((200, 300), "EcoSort Test Sample", fill=text_color, anchor="mm")
         draw.text((200, 330), "(Click to analyze)", fill=(100, 100, 100), anchor="mm")
