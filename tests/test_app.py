@@ -336,6 +336,38 @@ def test_predict_upload_cleanup_oserror_handling(client, monkeypatch):
     assert b"Unable to process the uploaded image." in response.data
 
 
+def test_predict_upload_saved_with_random_name(client, monkeypatch, tmp_path):
+    import re
+    import app as main_app
+
+    upload_dir = tmp_path / "uploads"
+    monkeypatch.setitem(app.config, "UPLOAD_FOLDER", upload_dir)
+    monkeypatch.setattr(main_app.classifier, "predict", lambda img: {
+        "predicted_class": "plastic",
+        "display_name": "Plastic",
+        "confidence": 99.0,
+        "bin_category": "Recycling",
+        "recycling_tip": "Rinse before recycling.",
+        "all_predictions": [],
+    })
+
+    img = Image.new("RGB", (50, 50), color=(10, 20, 30))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    payload = buf.getvalue()
+
+    data = {"file": (io.BytesIO(payload), "../../evil.JPG")}
+    response = client.post("/predict", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+
+    saved = list(upload_dir.iterdir())
+    assert len(saved) == 1
+    assert re.fullmatch(r"[0-9a-f]{32}\.jpg", saved[0].name)
+    assert saved[0].read_bytes() == payload
+    assert not (tmp_path / "evil.JPG").exists()
+    assert f"uploads/{saved[0].name}".encode() in response.data
+
+
 def test_api_classify_exception_handling(client, monkeypatch):
     import app as main_app
 
